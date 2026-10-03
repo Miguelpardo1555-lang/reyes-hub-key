@@ -8,55 +8,47 @@ function setStatus(message) {
   status.textContent = message || "";
 }
 
-async function claimFromReturn() {
-  const params = new URLSearchParams(location.search);
-  const session = params.get("session");
-  if (!session) return;
-
-  setStatus("Verificando tus tareas...");
-
-  try {
-    const res = await fetch(`/api/claim?session=${encodeURIComponent(session)}`);
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "No se pudo reclamar la key.");
-    }
-
-    keyEl.textContent = data.key;
-    result.classList.remove("hidden");
-    setStatus("Key generada correctamente.");
-
-    history.replaceState({}, "", location.pathname);
-  } catch (err) {
-    setStatus(err.message);
-  }
-}
-
 generate.addEventListener("click", async () => {
   generate.disabled = true;
   result.classList.add("hidden");
   setStatus("Preparando verificador...");
 
   try {
-    const res = await fetch("/api/create-key", { method: "POST" });
-    const data = await res.json();
+    const response = await fetch("/api/create-key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
-    if (!res.ok) {
-      throw new Error(data.error || "No se pudo iniciar.");
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || `Error del servidor (${response.status}).`
+      );
     }
 
-    location.href = data.url;
-  } catch (err) {
-    setStatus(err.message);
+    if (!data.url) {
+      throw new Error("LootLabs no devolvió el enlace.");
+    }
+
+    window.location.href = data.url;
+  } catch (error) {
+    console.error(error);
+    setStatus(error.message || "No se pudo iniciar el verificador.");
     generate.disabled = false;
   }
 });
 
 copy.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(keyEl.textContent);
-  copy.textContent = "COPIADO";
-  setTimeout(() => copy.textContent = "COPIAR", 1200);
+  try {
+    await navigator.clipboard.writeText(keyEl.textContent);
+    copy.textContent = "COPIADO";
+    setTimeout(() => {
+      copy.textContent = "COPIAR";
+    }, 1200);
+  } catch {
+    setStatus("No se pudo copiar la key.");
+  }
 });
-
-claimFromReturn();
