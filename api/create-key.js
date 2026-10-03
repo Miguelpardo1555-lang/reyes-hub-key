@@ -1,0 +1,70 @@
+const { redis, randomId } = require("./_lib/store");
+
+module.exports = async (req, res) => {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido." });
+  }
+
+  const siteUrl = process.env.SITE_URL;
+  const token = process.env.LOOTLABS_API_TOKEN;
+  const tierId = process.env.LOOTLABS_TIER_ID;
+  const theme = process.env.LOOTLABS_THEME || "light";
+
+  if (!siteUrl || !token || !tierId) {
+    return res.status(500).json({ error: "Faltan variables de entorno." });
+  }
+
+  const session = randomId();
+  const ttl = Number(process.env.SESSION_TTL_SECONDS || 3600);
+
+  await redis(
+    "SETEX",
+    `reyes:session:${session}`,
+    ttl,
+    JSON.stringify({
+      tasks: 0,
+      createdAt: Date.now(),
+      claimed: false
+    })
+  );
+
+  const returnUrl =
+    `${siteUrl.replace(/\/$/, "")}/?session=${encodeURIComponent(session)}`;
+
+  const response = await fetch(
+    "https://creators.lootlabs.gg/api/public/content_locker",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: "REYES HUB — GET KEY",
+        return_url: returnUrl,
+        tier_id: tierId,
+        number_of_tasks: 2,
+        theme
+      })
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    return res.status(502).json({
+      error: "LootLabs rechazó la solicitud.",
+      details: data
+    });
+  }
+
+  const url = data.url || data.redirect_url || data.link;
+
+  if (!url) {
+    return res.status(502).json({
+      error: "LootLabs no devolvió una URL de verificación."
+    });
+  }
+
+  return res.status(200).json({ url });
+};
