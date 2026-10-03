@@ -1,7 +1,7 @@
 const generate = document.getElementById("generate");
 const status = document.getElementById("status");
 
-const lootLabsLink = "https://lootdest.org/s?JoG5Y0vG";
+const lootLabsLink = "https://direct-link.net/9743264/BEzE0DFmqRqN";
 
 function setStatus(message) {
   status.textContent = message || "";
