@@ -33,21 +33,30 @@ module.exports = async (req, res) => {
     const returnUrl =
       `${siteUrl.replace(/\/$/, "")}/?session=${encodeURIComponent(session)}`;
 
-    const params = new URLSearchParams({
-      api_token: token,
+    const params = new URLSearchParams();
+
+    params.set("api_token", token);
+    params.set("title", "REYES HUB KEY");
+    params.set("url", returnUrl);
+    params.set("tier_id", "2");
+    params.set("number_of_tasks", "2");
+    params.set("theme", "1");
+
+    const lootApiUrl =
+      `https://creators.lootlabs.gg/api/public/content_locker?${params.toString()}`;
+
+    console.log("LOOTLABS REQUEST PARAMS:", {
       title: "REYES HUB KEY",
       url: returnUrl,
       tier_id: "2",
       number_of_tasks: "2",
-      theme: "1"
+      theme: "1",
+      hasApiToken: Boolean(token)
     });
 
-    const response = await fetch(
-      `https://creators.lootlabs.gg/api/public/content_locker?${params.toString()}`,
-      {
-        method: "GET"
-      }
-    );
+    const response = await fetch(lootApiUrl, {
+      method: "GET"
+    });
 
     const data = await response.json().catch(() => ({}));
 
