@@ -33,23 +33,19 @@ module.exports = async (req, res) => {
     const returnUrl =
       `${siteUrl.replace(/\/$/, "")}/?session=${encodeURIComponent(session)}`;
 
-    const body = {
+    const params = new URLSearchParams({
+      api_token: token,
       title: "REYES HUB KEY",
       url: returnUrl,
-      tier_id: 2,
-      number_of_tasks: 2,
-      theme: 1
-    };
+      tier_id: "2",
+      number_of_tasks: "2",
+      theme: "1"
+    });
 
     const response = await fetch(
-      "https://creators.lootlabs.gg/api/public/content_locker",
+      `https://creators.lootlabs.gg/api/public/content_locker?${params.toString()}`,
       {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
+        method: "GET"
       }
     );
 
@@ -70,7 +66,8 @@ module.exports = async (req, res) => {
 
     if (!lootUrl) {
       return res.status(502).json({
-        error: "LootLabs no devolvió una URL."
+        error: "LootLabs no devolvió una URL.",
+        details: data
       });
     }
 
