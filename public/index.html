@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REYES HUB — GET KEY</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="card">
+    <div class="badge">REYES HUB</div>
+    <h1>GET KEY</h1>
+    <p class="subtitle">Completa las tareas para obtener tu clave temporal.</p>
+
+    <section class="steps">
+      <div><b>1</b><span>Pulsa GENERAR KEY.</span></div>
+      <div><b>2</b><span>Completa las 2 tareas del verificador.</span></div>
+      <div><b>3</b><span>Regresa y reclama tu key.</span></div>
+    </section>
+
+    <button id="generate">GENERAR KEY</button>
+    <p id="status" class="status"></p>
+
+    <div id="result" class="result hidden">
+      <span>Tu key:</span>
+      <code id="key"></code>
+      <button id="copy" class="copy">COPIAR</button>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
