@@ -5,6 +5,5 @@
   "private": true,
   "description": "REYES HUB GET KEY",
   "engines": {
-    "node": "20.x"
-  }
+  "node": "24.x"
 }
