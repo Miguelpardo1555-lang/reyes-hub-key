@@ -1,49 +1,20 @@
-const { redis } = require("../_lib/store");
+const { redis } = require("../../api/_lib/store");
 
 module.exports = async (req, res) => {
-  if (req.method !== "POST") {
+  if (req.method !== "GET") {
     return res.status(405).json({ error: "Método no permitido." });
   }
 
-  const expectedSecret = process.env.LOOTLABS_POSTBACK_SECRET;
+  const clickId = req.query?.click_id;
+  const uniqueId = req.query?.unique_id;
 
-  if (expectedSecret) {
-    const receivedSecret =
-      req.headers["x-lootlabs-secret"] ||
-      req.query?.secret;
-
-    if (receivedSecret !== expectedSecret) {
-      return res.status(401).json({ error: "No autorizado." });
-    }
-  }
-
-  const body = req.body || {};
-
-  const session =
-    body.session ||
-    body.subid ||
-    body.user_id ||
-    body.userId;
-
-  const completed =
-    body.completed === true ||
-    body.status === "completed" ||
-    body.status === "complete";
-
-  if (!session) {
+  if (!clickId) {
     return res.status(400).json({
-      error: "Falta el identificador de sesión."
+      error: "Falta el ID de clic."
     });
   }
 
-  if (!completed) {
-    return res.status(200).json({
-      ok: true,
-      completed: false
-    });
-  }
-
-  const keyName = `reyes:session:${session}`;
+  const keyName = `reyes:session:${clickId}`;
   const raw = await redis("GET", keyName);
 
   if (!raw) {
@@ -53,9 +24,36 @@ module.exports = async (req, res) => {
   }
 
   const data = JSON.parse(raw);
-  const currentTasks = Number(data.tasks || 0);
 
-  data.tasks = Math.min(currentTasks + 1, 2);
+  if (uniqueId) {
+    const alreadyProcessed = await redis(
+      "SISMEMBER",
+      `reyes:postbacks:${clickId}`,
+      uniqueId
+    );
+
+    if (alreadyProcessed) {
+      return res.status(200).json({
+        ok: true,
+        duplicate: true,
+        tasks: Number(data.tasks || 0)
+      });
+    }
+
+    await redis(
+      "SADD",
+      `reyes:postbacks:${clickId}`,
+      uniqueId
+    );
+
+    await redis(
+      "EXPIRE",
+      `reyes:postbacks:${clickId}`,
+      Number(process.env.SESSION_TTL_SECONDS || 3600)
+    );
+  }
+
+  data.tasks = Math.min(Number(data.tasks || 0) + 1, 2);
 
   await redis(
     "SETEX",
