@@ -1,8 +1,10 @@
+
 {
-  "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
+  "name": "reyes-hub-get-key",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REYES HUB GET KEY",
+  "engines": {
+    "node": "20.x"
   }
 }
