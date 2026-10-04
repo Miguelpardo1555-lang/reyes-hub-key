@@ -1,9 +1,0 @@
-{
-  "name": "reyes-hub-get-key",
-  "version": "1.0.0",
-  "private": true,
-  "description": "REYES HUB GET KEY",
-  "engines": {
-    "node": "24.x"
-  }
-}
